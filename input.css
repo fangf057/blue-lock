@@ -1,2 +1,15 @@
 @import "tailwindcss";
-@plugin "daisyui";
+
+@plugin "daisyui" {
+    themes: light, dark --prefersdark, wireframe --default;
+  }
+
+@layer base {
+    html {
+      font-family: 
+        "PingFang SC",   /* macOS 首选 */
+        "Hiragino Sans GB", 
+        "Microsoft YaHei", /* Windows 回退 */
+        sans-serif;
+    }
+}

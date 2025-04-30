@@ -8,17 +8,10 @@ edition = "2021"
 
 [dependencies]
 
-dioxus = { version = "0.6.2", features = ["web", "desktop","document"] }
 
 # Debug
 tracing = "0.1.40"
 dioxus-logger = "0.6.2"
-web-sys = { version = "0.3.69", features = [
-    "Element",
-    "HtmlVideoElement",
-    "MediaStream",
-] }
-dioxus-html-macro = "0.3.0"
 tokio = {version = "1.44.2",features = ["full"]}
 async-trait = "0.1.88"
 futures = "0.3.31"
@@ -27,6 +20,10 @@ uuid = "1.16.0"
 env_logger = "0.11.8"
 cfg-if = "1.0.0"
 md-5 = "0.10.6"
+# dioxus = { git = "https://github.com/DioxusLabs/dioxus.git",branch = "main",features = ["native","desktop","router"]}
+dioxus = { git = "https://github.com/DioxusLabs/dioxus.git",branch = "main",features = ["desktop","router"]}
+
+
 
 
 

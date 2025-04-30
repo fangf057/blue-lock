@@ -3,5 +3,7 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [require("daisyui")], // 添加 daisyUI 插件
+  preflight: false,
+  
+  plugins: [require("daisyui"),], // 添加 daisyUI 插件
 }
