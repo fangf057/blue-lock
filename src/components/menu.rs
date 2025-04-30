@@ -85,7 +85,7 @@ pub fn Menu(props: MenuProps) -> Element {
                     .iter()
                     .map(|item| {
                         let is_active = props.current_route == item.route;
-                        info!("item router: {:?}",item.route);
+                        info!("item router: {:?}", item.route);
                         rsx! {
                             li { key: "{item.name}",
                                 Link { to: item.route.clone(), class: if is_active { "menu-active" } else { "" },

@@ -8,7 +8,7 @@ pub fn Layout() -> Element {
 
     rsx! {
         div { class: "flex min-h-screen",
-            Sidebar { current_route: route.clone() },
+            Sidebar { current_route: route.clone() }
             Outlet::<Route> {}
         }
     }

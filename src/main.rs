@@ -15,6 +15,6 @@ fn main() {
 fn App() -> Element {
     rsx! {
         style { {include_str!("../assets/tailwind.css")} }
-        Router::<Route> {  }
+        Router::<Route> {}
     }
 }
