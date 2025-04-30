@@ -23,7 +23,7 @@ pub fn DeviceList() -> Element {
         div { class: "mb-8 flex justify-between items-center",
             div { class: "flex gap-3 items-center",
                 h1 { class: "text-2xl font-bold", "附近的蓝牙设备" }
-                div { class: "badge badge-primary badge-outline text-base text-2xl", "{devices.len()} 在线" }
+                div { class: "text-blue-500  animate-pulse text-2xl font-bold", "{devices.len()}" }
             }
             // button { class: "btn btn-sm btn-primary btn-outline flex gap-2 items-center",
             //     svg {
@@ -63,7 +63,7 @@ pub fn DeviceList() -> Element {
                                         div { 
                                             class: "avatar h-12 w-12 flex items-center justify-center",
                                             div {
-                                                class: "rounded-full bg-primary text-primary-content text-2xl font-bold uppercase select-none flex items-center justify-center leading-none text-center",
+                                                class: "rounded-full text-2xl font-bold uppercase select-none flex items-center justify-center leading-none text-center bg-blue-500 text-white",
                                                 style: "height:3rem;width:3rem;line-height:1;display:flex;align-items:center;justify-content:center;",
                                                 "{initial}"
                                             }
@@ -72,32 +72,33 @@ pub fn DeviceList() -> Element {
                                         div { class: "flex-1 min-w-0",
                                             div { class: "flex gap-2 items-center",
                                                 span { class: "font-bold text-lg truncate", "{d.name}" }
-                                                div { class: "badge badge-info badge-outline badge-sm", "{d.device_type}" }
+                                                div { class: "text-base text-2xl font-bold", "{d.device_type}" }
                                             }
                                             div { class: "flex gap-2 items-center text-gray-500 mt-1 text-sm",
                                                 span { class: "flex gap-1 items-center",
-                                                    svg {
-                                                        class: "h-4 w-4 text-blue-500",
-                                                        fill: "none",
-                                                        stroke: "currentColor",
-                                                        stroke_width: "2",
-                                                        view_box: "0 0 24 24",
-                                                        path {
-                                                            stroke_linecap: "round",
-                                                            stroke_linejoin: "round",
-                                                            d: "M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z",
-                                                        }
+                                                svg {
+                                                    class: "h-4 w-4 text-blue-500",
+                                                    fill: "none",
+                                                    stroke: "currentColor",
+                                                    stroke_width: "2",
+                                                    view_box: "0 0 24 24",
+                                                    path {
+                                                        stroke_linecap: "round",
+                                                        stroke_linejoin: "round",
+                                                        // 动态波形（类似声波）
+                                                        d: "M5 12h14M12 5v14M18 8v8M6 8v8",
                                                     }
+                                                }
                                                     "{d.rssi} dBm"
                                                 }
                                                 span { class: "opacity-60", "|" }
-                                                span { "{d.mac}" }
+                                                span { class: "flex gap-1 items-center text-base",
+                                                    "{d.mac}" }
                                             }
                                         }
                                         // 右侧状态/操作
                                         div { class: "flex flex-col items-end gap-1 min-w-fit",
                                             // 在线 Badge
-                                            div { class: "badge badge-success badge-xs animate-pulse mb-1", "在线" }
                                             button { class: "btn btn-primary btn-sm px-3 flex gap-1 items-center",
                                                 svg {
                                                     class: "h-4 w-4",

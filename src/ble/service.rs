@@ -71,11 +71,10 @@ pub async fn get_all_device_list() -> Result<Vec<Device>, Box<dyn Error + Send +
 
                 // 包含 AppleWatch 就是手表
                 let device_type = match device_name{
-                    name if name.contains("Watch") => "watch".to_string(),
-                    name if name.contains("iPhone") => "phone".to_string(),
-                    name if name.contains("iPad") => "pad".to_string(),
-                    name if name.contains("MacBook") => "macbook".to_string(),
-                    _ => "unknown".to_string()
+                    name if name.contains("Watch") => "⌚️".to_string(),
+                    name if name.contains("iPhone") || name.contains("iPad") => "📱".to_string(),
+                    name if name.contains("MacBook") => "💻".to_string(),
+                    _ => "".to_string()
                 };
 
                 devices.push(Device {
@@ -83,6 +82,7 @@ pub async fn get_all_device_list() -> Result<Vec<Device>, Box<dyn Error + Send +
                     device_type: device_type,
                     rssi: props.as_ref().and_then(|p| p.rssi).unwrap_or(0),
                     percent:0,
+                    mac: fingerprint,
                     signal_color: "from-blue-400 to-blue-600".to_string(),
                     ..Default::default()
                 })
