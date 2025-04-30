@@ -119,48 +119,14 @@ pub fn DeviceList() -> Element {
                                     div { class: "mt-4 grid grid-cols-2 gap-4 items-center",
                                         // --- 进度条区域 ---
                                         div { class: "flex flex-col gap-2",
-                                            span { class: "label-text text-xs text-gray-400 mb-1", "信号强度" }
+                                            span { class: "label-text text-xs text-gray-400 mb-1", "信号强度 {d.percent}%" }
                                             progress {
                                                 class: "progress progress-primary w-full h-2",
                                                 max: "100",
                                                 value: "{d.percent}",
                                             }
                                         }
-                                        // --- 状态/最后联通时间 ---
-                                        div { class: "flex flex-col gap-2",
-                                            div { class: "flex gap-2 items-center",
-                                                svg {
-                                                    class: "h-4 w-4 text-success",
-                                                    fill: "none",
-                                                    stroke: "currentColor",
-                                                    stroke_width: "1.8",
-                                                    view_box: "0 0 24 24",
-                                                    path {
-                                                        stroke_linecap: "round",
-                                                        stroke_linejoin: "round",
-                                                        d: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-                                                    }
-                                                }
-                                                span { class: "text-gray-600 text-sm", "{d.status}" }
-                                            }
-                                            // div { class: "flex gap-2 items-center",
-                                            //     svg {
-                                            //         class: "h-4 w-4 text-gray-400",
-                                            //         fill: "none",
-                                            //         stroke: "currentColor",
-                                            //         stroke_width: "1.8",
-                                            //         view_box: "0 0 24 24",
-                                            //         path {
-                                            //             stroke_linecap: "round",
-                                            //             stroke_linejoin: "round",
-                                            //             d: "M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z",
-                                            //         }
-                                            //     }
-                                            //     span { class: "text-gray-400 text-xs", "{d.last}" }
-                                            // }
-                                        }
                                     }
-                                    // div { class: "text-xs mt-2 text-gray-400", "{d.signal_text}" }
                                 }
                             }
                         }

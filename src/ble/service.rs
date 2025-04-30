@@ -69,16 +69,6 @@ pub async fn get_all_device_list() -> Result<Vec<Device>, Box<dyn Error + Send +
             let fingerprint = get_device_fingerprint(&props);
             if let Some(device_name) = props.as_ref().and_then(|p| p.local_name.as_deref()) {
 
-                // 信号映射 百分比 值越小 信号越强 负数
-                let precent  = match props.as_ref().and_then(|p| p.rssi).unwrap_or(0){
-                    rssi if rssi > -50 => 20,
-                    rssi if rssi > -70 => 40,
-                    rssi if rssi > -80 => 60,
-                    rssi if rssi > -90 => 80,
-                    rssi if rssi > -100 => 100,
-                    _ => 0
-                };
-
                 // 包含 AppleWatch 就是手表
                 let device_type = match device_name{
                     name if name.contains("Watch") => "watch".to_string(),
@@ -92,10 +82,8 @@ pub async fn get_all_device_list() -> Result<Vec<Device>, Box<dyn Error + Send +
                     name: device_name.to_string(),
                     device_type: device_type,
                     rssi: props.as_ref().and_then(|p| p.rssi).unwrap_or(0),
-                    percent:precent,
+                    percent:0,
                     signal_color: "from-blue-400 to-blue-600".to_string(),
-                    signal_text:"信号".to_string(),
-                    status: format!("{}%",precent),
                     ..Default::default()
                 })
             }
@@ -110,8 +98,17 @@ pub async fn get_all_device_list() -> Result<Vec<Device>, Box<dyn Error + Send +
 
     was_connected = is_connected;
 
+    // 归一化
+    let min_rssi = devices.iter().map(|d| d.rssi).min().expect("Devices list is empty");
+    let max_rssi = devices.iter().map(|d| d.rssi).max().expect("Devices list is empty");
+
+    for device in &mut devices {
+        let normalized_rssi = (max_rssi - device.rssi) as f64 / (max_rssi - min_rssi) as f64;
+        device.percent =100- (normalized_rssi * 100.0) as u8; // 0%~100%（100% = 最强信号）
+    }
+
     // sort by rssi
-    devices.sort_by(|a, b| a.rssi.cmp(&b.rssi));
+    devices.sort_by(|a, b| a.percent.cmp(&b.percent).reverse());
 
     Ok(devices)
 }
