@@ -14,9 +14,14 @@ pub fn Sidebar(current_route: Route) -> Element {
             route: Route::Home,
         },
         MenuItem {
-            name: "设备列表".to_owned(),
+            name: "设备".to_owned(),
             icon: "device".to_owned(),
             route: Route::Device,
+        },
+        MenuItem {
+            name: "日志".to_owned(),
+            icon: "log".to_owned(),
+            route: Route::Log,
         },
         MenuItem {
             name: "关于".to_owned(),
@@ -31,11 +36,11 @@ pub fn Sidebar(current_route: Route) -> Element {
         .map(|item| MenuItem { ..item.clone() })
         .collect::<Vec<_>>();
 
-    rsx! {
-            aside { class: "w-64 min-h-screen bg-base-200 p-4", // 使用语义化标签aside
+        rsx! {
+            aside { 
+                class: "w-32 h-full bg-base-300 flex flex-col items-center",  // 修改这里
                 h1 { class: "text-xl font-bold mb-4", "BLE Unlock" }
-                Menu { items, current_route: current_route.clone() // 如果Route需要克隆 } }
+                Menu { items, current_route: current_route.clone() }
             }
         }
-    }
 }

@@ -11,4 +11,6 @@ pub enum Route {
     Device,
     #[route("/about")]
     About,
+    #[route("/log")]
+    Log,
 }

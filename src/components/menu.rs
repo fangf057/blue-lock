@@ -64,6 +64,21 @@ pub fn parse_svg(svg: &str) -> Element {
                 }
             }
         },
+        "log" => rsx! {
+            svg {
+                class: "h-5 w-5",
+                fill: "none",
+                stroke: "currentColor",
+                view_box: "0 0 24 24",
+                xmlns: "http://www.w3.org/2000/svg",
+                path {
+                    stroke_linecap: "round",
+                    stroke_linejoin: "round",
+                    stroke_width: "2",
+                    d: "M7 8h10M7 12h4m1 8H6a2 2 0 01-2-2V6a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z",
+                }
+            }
+        },
         _ => rsx! {
             svg {
                 class: "h-5 w-5",
@@ -78,7 +93,7 @@ pub fn parse_svg(svg: &str) -> Element {
 pub fn Menu(props: MenuProps) -> Element {
     info!("Rendering menu with items: {:?}", props.items);
     rsx! {
-        ul { class: "menu menu-lg bg-base-200 rounded-box",
+        ul { class: "menu menu-lg bg-transparent rounded-box",
             {
                 props
                     .items
