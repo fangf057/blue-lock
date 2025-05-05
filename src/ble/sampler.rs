@@ -1,29 +1,26 @@
-use std::collections::VecDeque;
+use std::fmt::Debug;
 
-use shaku::{Component, Interface};
-use snafu::ResultExt;
 use tokio::sync::mpsc::Sender;
-
 use crate::errors::{AppError, AppResult};
-
 use super::ring_buffer::RingBuffer;
 
-pub type Sample = Vec<i16>;
-
-pub struct Sampler {
-    buffer: RingBuffer<i16>,
-    sample_tx: Sender<Sample>,
+pub struct Sampler<T> {
+    buffer: RingBuffer<T>,
+    sample_tx: Sender<Vec<T>>,
 }
 
-impl Sampler {
-    pub fn new(window_size: usize, sample_tx: Sender<Sample>) -> Self {
+impl<T> Sampler<T>
+where
+    T: Default + Copy + Debug + Send + 'static,
+{
+    pub fn new(window_size: usize, sample_tx: Sender<Vec<T>>) -> Self {
         Self {
             buffer: RingBuffer::new(window_size),
             sample_tx,
         }
     }
     
-    pub async fn feed(&mut self, val: i16) -> AppResult<()> {
+    pub async fn feed(&mut self, val: T) -> AppResult<()> {
         self.buffer.push(val);
         if self.buffer.is_full() {
             let sample = self.buffer.window_data();
@@ -38,35 +35,44 @@ impl Sampler {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use tokio::sync::mpsc;
 
-    use crate::ble::sampler::Sampler;
+    async fn collect_samples<T>(mut rx: mpsc::Receiver<Vec<T>>, count: usize) -> Vec<Vec<T>> {
+        let mut samples = Vec::new();
+        for _ in 0..count {
+            if let Some(sample) = rx.recv().await {
+                samples.push(sample);
+            }
+        }
+        samples
+    }
 
     #[tokio::test]
-    async fn test_sampler() {
-        let (tx, mut rx) = mpsc::channel(128);
+    async fn test_sampler_with_i16() {
+        let (tx, rx) = mpsc::channel(128);
         
-        let handle = tokio::spawn(async move {
-            let mut received_samples = Vec::new();
-            while let Some(sample) = rx.recv().await {
-                received_samples.push(sample);
-                if received_samples.len() >= 10 {
-                    break;
-                }
-            }
-            received_samples
-        });
-    
         let mut sampler = Sampler::new(10, tx);
         for i in 0..100 {
             sampler.feed(i as i16).await.unwrap();
         }
-    
-        let received_samples = handle.await.unwrap();
+
+        let samples = collect_samples(rx, 10).await;
+        assert_eq!(samples[0], (0..10).collect::<Vec<_>>());
+        assert_eq!(samples[9], (90..100).collect::<Vec<_>>());
+    }
+
+    #[tokio::test]
+    async fn test_sampler_with_f32() {
+        let (tx, rx) = mpsc::channel(128);
         
-        // 修改断言以匹配实际行为
-        assert_eq!(received_samples.len(), 10);
-        assert_eq!(received_samples[0], (0..10).collect::<Vec<_>>());
-        assert_eq!(received_samples[9], (9..19).collect::<Vec<_>>()); // 匹配实际行为
+        let mut sampler = Sampler::new(5, tx);
+        for i in 0..20 {
+            sampler.feed(i as f32 * 0.1).await.unwrap();
+        }
+
+        let samples = collect_samples(rx, 4).await;
+        assert_eq!(samples[0], vec![0.0, 0.1, 0.2, 0.3, 0.4]);
+        assert_eq!(samples[3], vec![1.5, 1.6, 1.7, 1.8, 1.9]);
     }
 }

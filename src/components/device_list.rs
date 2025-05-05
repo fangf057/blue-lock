@@ -5,7 +5,7 @@ use tracing::info;
 #[component]
 pub fn DeviceList() -> Element {
     // 信号量用于更新设备列表
-    let devices = use_signal(|| Vec::<Device>::new());
+    let devices = use_signal(Vec::<Device>::new);
     use_future({
         to_owned![devices];
         move || async move {

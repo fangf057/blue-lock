@@ -1,49 +1,86 @@
+use std::fmt::Debug;
+
+#[derive(Debug)]
 pub struct RingBuffer<T> {
-    buffer: Box<[T]>,   // 固定大小数组
-    head: usize,        // 写入位置
-    count: usize,       // 当前元素数
-    window_size: usize, // 等同于buffer.len()
+    buffer: Box<[T]>,
+    write_idx: usize,  // 下一个写入位置
+    read_idx: usize,   // 下一个读取位置
+    capacity: usize,
 }
 
 impl<T> RingBuffer<T>
 where
-    T: Copy + Default,
+    T: Default + Copy + Debug,
 {
-    pub fn new(window_size: usize) -> Self {
+    pub fn new(capacity: usize) -> Self {
         Self {
-            buffer: vec![Default::default(); window_size].into_boxed_slice(),
-            head: 0,
-            count: 0,
-            window_size,
+            buffer: vec![T::default(); capacity].into_boxed_slice(),
+            write_idx: 0,
+            read_idx: 0,
+            capacity,
         }
     }
 
     #[inline]
-    pub fn push(&mut self, value: T) {
-        self.buffer[self.head] = value;
-        self.head = (self.head + 1) % self.window_size;
-        self.count = self.count.min(self.window_size - 1) + 1;
+    pub fn push(&mut self, value: T) -> Option<T> {
+        let next_write = (self.write_idx + 1) % self.capacity;
+        
+        if next_write == self.read_idx {
+            // 缓冲区已满，覆盖最旧数据
+            let overwritten = self.buffer[self.read_idx];
+            self.buffer[self.write_idx] = value;
+            self.write_idx = next_write;
+            self.read_idx = (self.read_idx + 1) % self.capacity;
+            Some(overwritten)
+        } else {
+            // 正常写入
+            self.buffer[self.write_idx] = value;
+            self.write_idx = next_write;
+            None
+        }
     }
 
     #[inline]
     pub fn is_full(&self) -> bool {
-        self.count == self.window_size
+        (self.write_idx + 1) % self.capacity == self.read_idx
     }
 
-    /// 获取当前窗口数据 (按时间顺序从旧到新)
-    pub fn window_data(&self) -> Vec<T> {
-        let mut data = Vec::with_capacity(self.window_size);
-        if self.count >= self.window_size {
-            for i in 0..self.window_size {
-                let idx = (self.head + i) % self.window_size;
-                data.push(self.buffer[idx]);
-            }
-        } else {
-            // 窗口未满时返回已有数据
-            for i in 0..self.count {
-                data.push(self.buffer[i]);
-            }
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.write_idx == self.read_idx
+    }
+
+    pub fn window_data(&mut self) -> Vec<T> {
+        if self.is_empty() {
+            return Vec::new();
         }
+
+        let mut data = Vec::with_capacity(self.capacity);
+        let mut idx = self.read_idx;
+
+        while idx != self.write_idx {
+            data.push(self.buffer[idx]);
+            idx = (idx + 1) % self.capacity;
+        }
+        // rest 
+        self.write_idx = 0;
+        self.read_idx = 0;
+
         data
+    }
+
+    #[inline]
+    pub fn clear(&mut self) {
+        self.write_idx = 0;
+        self.read_idx = 0;
+    }
+
+    #[inline]
+    pub fn available_space(&self) -> usize {
+        if self.is_full() {
+            0
+        } else {
+            (self.read_idx + self.capacity - self.write_idx - 1) % self.capacity
+        }
     }
 }

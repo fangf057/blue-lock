@@ -1,31 +1,19 @@
-use btleplug::api::{Central, PeripheralProperties};
+use btleplug::api::Central;
 use btleplug::api::{Manager as _, Peripheral as _, ScanFilter};
 use btleplug::platform::{Manager, Peripheral};
 use futures::stream::StreamExt;
 use md5::{Digest, Md5};
 use std::error::Error;
-use std::process::Command;
-use std::time::Duration;
-use tokio::time;
 use tracing::info;
-use uuid::Uuid;
 
 // 配置你要监控的蓝牙设备地址
 const TARGET_DEVICE_ADDR: &str = "00:11:22:33:44:55"; // 替换为你的设备地址
 
-use std::collections::HashMap;
 
 use crate::dto::device::Device;
 
-fn get_device_fingerprint(props: &Option<PeripheralProperties>) -> String {
-    let props = props.to_owned().unwrap_or(PeripheralProperties::default());
-    let salt = format!(
-        "{}-{:?}-{:?}-{:?}",
-        props.local_name.as_deref().unwrap_or(""),
-        props.services,
-        props.manufacturer_data,
-        props.service_data
-    );
+pub fn get_device_fingerprint(name: &str) -> String {
+    let salt = name.to_string();
     // md5
     let mut hasher = Md5::new();
     hasher.update(salt.as_bytes());
@@ -66,8 +54,8 @@ pub async fn get_all_device_list() -> Result<Vec<Device>, Box<dyn Error + Send +
     info!("Found {} peripherals", peripherals.len());
     for peripheral in &peripherals {
         if let Ok(props) = peripheral.properties().await {
-            let fingerprint = get_device_fingerprint(&props);
             if let Some(device_name) = props.as_ref().and_then(|p| p.local_name.as_deref()) {
+            let fingerprint = get_device_fingerprint(device_name);
 
                 // 包含 AppleWatch 就是手表
                 let device_type = match device_name{
@@ -79,7 +67,7 @@ pub async fn get_all_device_list() -> Result<Vec<Device>, Box<dyn Error + Send +
 
                 devices.push(Device {
                     name: device_name.to_string(),
-                    device_type: device_type,
+                    device_type,
                     rssi: props.as_ref().and_then(|p| p.rssi).unwrap_or(0),
                     percent:0,
                     mac: fingerprint,
