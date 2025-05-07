@@ -11,3 +11,4 @@
 node_modules/
 assets/tailwind.css
 pnpm-lock.yaml
+sample.db

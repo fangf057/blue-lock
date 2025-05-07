@@ -41,7 +41,7 @@ fn App() -> Element {
         let mut signal = samples_signal.clone();
         // 不要 let sample_rx = ... 再 move！
         move || async move {
-            let db = Database::connect("sqlite:../../sample.db")
+            let db = Database::connect("sqlite:sample.db")
                 .await
                 .expect("Database connection failed");
 
