@@ -14,6 +14,17 @@ pub enum DetectionState {
     Unknown,  
 }
 
+impl Into<i32> for DetectionState {
+    fn into(self) -> i32 {
+        match self {
+            Self::Stationary => 0,
+            Self::MovingAway => 1,
+            Self::MovingCloser => 2,
+            Self::Unknown => -1,
+        }
+    }
+}
+
 
 impl Display for DetectionState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -76,6 +87,9 @@ impl Model {
     pub fn inference(&self, data: Vec<f32>) -> Result<DetectionState, Box<dyn Error>> {
         if data.len() != 9 {
             return Err("输入数据长度不正确".into());
+        }
+        if data.iter().filter(|e|**e==0.0).count()>0{
+            return Ok(DetectionState::Unknown);
         }
         let _tm   = InstantTimer::new();
         let input_array = Array::from_shape_vec((1, 9), data)?;

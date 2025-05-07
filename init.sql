@@ -1,0 +1,7 @@
+-- t_sample definition
+
+CREATE TABLE t_sample (
+	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	device TEXT NOT NULL,
+	created_at REAL DEFAULT (CURRENT_TIMESTAMP)
+, sample TEXT NOT NULL , predict INTEGER DEFAULT (-1) NOT NULL, actual INTEGER DEFAULT (-1) NOT NULL);

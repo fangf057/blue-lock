@@ -1122,6 +1122,8 @@ dependencies = [
  "ndarray",
  "ort",
  "sea-orm",
+ "serde",
+ "serde_json",
  "shaku",
  "snafu",
  "tokio",

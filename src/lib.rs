@@ -5,3 +5,6 @@ pub mod pages;
 pub mod routes;
 pub mod errors;
 pub mod di;
+pub mod application;
+pub mod domain;
+pub mod infrastructure;
