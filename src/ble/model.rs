@@ -74,6 +74,9 @@ impl Model {
     }
 
     pub fn inference(&self, data: Vec<f32>) -> Result<DetectionState, Box<dyn Error>> {
+        if data.len() != 9 {
+            return Err("输入数据长度不正确".into());
+        }
         let _tm   = InstantTimer::new();
         let input_array = Array::from_shape_vec((1, 9), data)?;
         
@@ -99,33 +102,33 @@ impl Model {
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
-    let detector = Model::new(include_bytes!("/Users/fangf/opensource/d2l/rssi-detect/hybrid_model.onnx"))?;
-    // 创建数据接收channel和结果返回channel
-    let (tx, mut rx) = mpsc::channel::<(Vec<f32>, oneshot::Sender<DetectionState>)>(10);
+// #[tokio::main]
+// async fn main() -> Result<(), Box<dyn Error>> {
+//     let detector = Model::new(include_bytes!("/Users/fangf/opensource/d2l/rssi-detect/hybrid_model.onnx"))?;
+//     // 创建数据接收channel和结果返回channel
+//     let (tx, mut rx) = mpsc::channel::<(Vec<f32>, oneshot::Sender<DetectionState>)>(10);
 
-    // 启动推理处理循环
-    tokio::spawn(async move {
-        while let Some((data, resp_tx)) = rx.recv().await {
-            match detector.inference(data) {
-                Ok(state) => { let _ = resp_tx.send(state); },
-                Err(e) => eprintln!("推理错误: {}", e),
-            }
-        }
-    });
+//     // 启动推理处理循环
+//     tokio::spawn(async move {
+//         while let Some((data, resp_tx)) = rx.recv().await {
+//             match detector.inference(data) {
+//                 Ok(state) => { let _ = resp_tx.send(state); },
+//                 Err(e) => eprintln!("推理错误: {}", e),
+//             }
+//         }
+//     });
 
-    // 示例使用
-    let test_data = vec![-50.0, -62.0, -71.0, -68.0, -65.0, -73.0, -72.0, -79.0, -75.0];
-    let (resp_tx, resp_rx) = oneshot::channel();
-    tx.send((test_data.clone(), resp_tx)).await?;
+//     // 示例使用
+//     let test_data = vec![-50.0, -62.0, -71.0, -68.0, -65.0, -73.0, -72.0, -79.0, -75.0];
+//     let (resp_tx, resp_rx) = oneshot::channel();
+//     tx.send((test_data.clone(), resp_tx)).await?;
     
-    match resp_rx.await? {
-        DetectionState::Stationary => println!("检测结果: 静止"),
-        DetectionState::MovingCloser => println!("检测结果: 靠近"),
-        DetectionState::MovingAway => println!("检测结果: 远离"),
-        DetectionState::Unknown => println!("检测结果: 未知"),
-    }
+//     match resp_rx.await? {
+//         DetectionState::Stationary => println!("检测结果: 静止"),
+//         DetectionState::MovingCloser => println!("检测结果: 靠近"),
+//         DetectionState::MovingAway => println!("检测结果: 远离"),
+//         DetectionState::Unknown => println!("检测结果: 未知"),
+//     }
 
-    Ok(())
-}
+//     Ok(())
+// }

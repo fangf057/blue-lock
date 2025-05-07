@@ -14,7 +14,7 @@ use std::{
 };
 use tokio::sync::{mpsc, oneshot};
 
-use super::{detection::Detector, processor::Processor, service::get_device_fingerprint};
+use super::{detection::Detector, service::get_device_fingerprint};
 
 pub struct PresenceDetector {
     cmd_tx: mpsc::Sender<ProcessorMsg>,
@@ -33,13 +33,11 @@ struct DeviceStatus {
 }
 
 impl PresenceDetector {
-    pub async fn new(config: AlgoConfig) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn new(config: AlgoConfig,sample_tx: mpsc::Sender<Vec<f32>>) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         let (cmd_tx, cmd_rx) = mpsc::channel(100);
-        let (sample_tx, sample_rx) = mpsc::channel(100);
         let (event_tx, mut event_rx) = mpsc::channel(100);
 
         // 使用 f32 类型初始化 Processor
-        let processor = Processor::new(config.threshold, config.stability_window);
         let detector = Detector::new(
             config.window_size,
             sample_tx,
@@ -70,17 +68,16 @@ impl PresenceDetector {
         });
 
         tokio::spawn(Self::processing_task(
-            cmd_rx, sample_rx, detector, processor,
+            cmd_rx, detector,
         ));
 
-        Ok(Self { cmd_tx })
+        Ok(Self { cmd_tx})
     }
 
     async fn processing_task(
         mut cmd_rx: mpsc::Receiver<ProcessorMsg>,
-        mut sample_rx: mpsc::Receiver<Vec<f32>>,
+        // mut sample_rx: mpsc::Receiver<Vec<f32>>,
         mut detector: Detector<f32>,
-        processor: Processor<f32>, // 使用 f32 类型
     ) {
         let mut last_sample_at = Instant::now();
 
@@ -90,7 +87,7 @@ impl PresenceDetector {
                     match msg {
                         ProcessorMsg::Sample { device_id, rssi } => {
                             // 采样
-                            if last_sample_at.elapsed() >= Duration::from_millis(100) {
+                            if last_sample_at.elapsed() >= Duration::from_millis(1) {
                                 info!(
                                     name: "processor",
                                     device_id = %format!(r#""{}""#, device_id),  // 用引号包裹
@@ -106,16 +103,6 @@ impl PresenceDetector {
                         }
                         ProcessorMsg::Shutdown => break,
                     }
-                }
-                Some(samples) = sample_rx.recv() => {
-                    // 将 i16 样本转换为 f32 处理
-                    let samples_f32: Vec<f32> = samples.iter().copied().collect();
-                    let event_tx = detector.event_tx().clone();
-                    // !("Received {:?} samples", samples_f32);
-                    let model = Model::new(include_bytes!("/Users/fangf/opensource/d2l/rssi-detect/hybrid_model.onnx")).unwrap();
-                    let res = model.inference(samples_f32.clone()).unwrap();
-                    warn!("推理结果:{}",res);
-                    let _ = processor.process_samples(&samples_f32, &event_tx).await;
                 }
             }
         }

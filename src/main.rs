@@ -1,38 +1,60 @@
 #![allow(non_snake_case)]
 
-use btleplug::{api::{Central, Manager as _, ScanFilter}, platform::Manager};
+use btleplug::{
+    api::{Central, Manager as _, ScanFilter},
+    platform::Manager,
+};
 use dioxus::prelude::*;
 use dioxus_demo::{ble::presence_detector::PresenceDetector, routes::Route};
+use tracing::info;
 use tracing_subscriber::EnvFilter;
-
 
 fn main() {
     // Init logger
     // dioxus_logger::init(Level::INFO).expect("failed to init logger");
     tracing_subscriber::fmt()
-        .json()  // 启用 JSON 格式
+        .json() // 启用 JSON 格式
         .with_ansi(false)
-        .with_env_filter(EnvFilter::new("info"))  // 日志级别
+        .with_env_filter(EnvFilter::new("info")) // 日志级别
         .init();
     launch(App);
 }
 
 #[component]
 fn App() -> Element {
-    tokio::spawn(async move {
-        let target = "5d964bc66dbc1093";
-        let dector = PresenceDetector::new(Default::default()).await.unwrap();
-        let manager = Manager::new().await.unwrap();
-        let adapter = manager
-            .adapters()
-            .await
-            .unwrap()
-            .into_iter()
-            .next()
-            .unwrap();
-        adapter.start_scan(ScanFilter::default()).await.unwrap();
-        dector.start_detection(adapter, target).await.unwrap();
+    let samples_signal = use_signal(|| Vec::<f32>::new());
+
+    use_future({
+        let mut signal = samples_signal.clone();
+        // 不要 let sample_rx = ... 再 move！
+        move || async move {
+            let (sample_tx, mut sample_rx) = tokio::sync::mpsc::channel::<Vec<f32>>(100);
+            let target = "5d964bc66dbc1093";
+            let dector = PresenceDetector::new(Default::default(), sample_tx)
+                .await
+                .unwrap();
+            let manager = Manager::new().await.unwrap();
+            let adapter = manager
+                .adapters()
+                .await
+                .unwrap()
+                .into_iter()
+                .next()
+                .unwrap();
+            tokio::spawn(async move {
+                adapter.start_scan(ScanFilter::default()).await.unwrap();
+                dector.start_detection(adapter, target).await.unwrap();
+            });
+
+            while let Some(samples) = sample_rx.recv().await {
+                info!("received samples: {:?}", samples);
+                signal.set(samples);
+            }
+        }
     });
+
+    use_context_provider(|| samples_signal.clone());
+
     rsx! {
         style { {include_str!("../assets/tailwind.css")} }
         Router::<Route> {}
