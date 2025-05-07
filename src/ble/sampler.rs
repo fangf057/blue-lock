@@ -2,10 +2,10 @@ use std::fmt::Debug;
 
 use tokio::sync::mpsc::Sender;
 use crate::errors::{AppError, AppResult};
-use super::ring_buffer::RingBuffer;
+use super::{ring_buffer::RingBuffer, sliding_window::SlidingWindow};
 
 pub struct Sampler<T> {
-    buffer: RingBuffer<T>,
+    buffer: SlidingWindow<T>,
     sample_tx: Sender<Vec<T>>,
 }
 
@@ -15,14 +15,14 @@ where
 {
     pub fn new(window_size: usize, sample_tx: Sender<Vec<T>>) -> Self {
         Self {
-            buffer: RingBuffer::new(window_size),
+            buffer: SlidingWindow::new(window_size),
             sample_tx,
         }
     }
     
     pub async fn feed(&mut self, val: T) -> AppResult<()> {
         self.buffer.push(val);
-        if self.buffer.is_full() {
+        if true {
             let sample = self.buffer.window_data();
             self.sample_tx
                 .send(sample)

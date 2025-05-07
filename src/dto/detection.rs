@@ -32,7 +32,7 @@ pub struct AlgoConfig {
 impl Default for AlgoConfig {
     fn default() -> Self {
         Self {
-            window_size: 10,
+            window_size: 9,
             threshold: -70.0,
             stability_window: 5,
             timeout_secs: 15,

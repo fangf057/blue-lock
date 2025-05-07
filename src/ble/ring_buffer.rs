@@ -62,10 +62,6 @@ where
             data.push(self.buffer[idx]);
             idx = (idx + 1) % self.capacity;
         }
-        // rest 
-        self.write_idx = 0;
-        self.read_idx = 0;
-
         data
     }
 
