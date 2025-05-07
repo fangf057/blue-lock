@@ -87,7 +87,7 @@ impl PresenceDetector {
                     match msg {
                         ProcessorMsg::Sample { device_id, rssi } => {
                             // 采样
-                            if last_sample_at.elapsed() >= Duration::from_millis(1) {
+                            if last_sample_at.elapsed() >= Duration::from_millis(20) {
                                 info!(
                                     name: "processor",
                                     device_id = %format!(r#""{}""#, device_id),  // 用引号包裹
