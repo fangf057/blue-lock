@@ -44,6 +44,7 @@ impl ISampleRepo for SampleRepo {
             v,
             ModelResult::from(s.predict),
             ModelResult::from(s.actual),
+            s.created_at,
         ))
     }
     async fn save(&self, aggregate: SampleAggregate) -> AppResult<()> {

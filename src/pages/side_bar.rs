@@ -14,6 +14,12 @@ pub fn Sidebar(current_route: Route) -> Element {
             route: Route::Home,
         },
         MenuItem {
+            name: "标注".to_owned(),
+            icon: "home".to_owned(),
+            route: Route::Label,
+        },
+
+        MenuItem {
             name: "设备".to_owned(),
             icon: "device".to_owned(),
             route: Route::Device,

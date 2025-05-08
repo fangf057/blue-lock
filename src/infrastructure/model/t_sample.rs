@@ -9,7 +9,7 @@ pub struct Model {
     pub id: i32,
     pub device: String,
     #[sea_orm(column_type = "Double", nullable)]
-    pub created_at: Option<f64>,
+    pub created_at: String,
     pub sample: String,
     pub predict: i32,
     pub actual: i32,
